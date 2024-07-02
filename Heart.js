@@ -235,8 +235,8 @@ async function Telesticker(url) {
             data2 = await axios(`https://api.telegram.org/bot891038791:AAHWB1dQd-vi0IbH2NjKYUk-hqQ8rQuzPD4/getFile?file_id=${fileId}`)
             result = {
             status: 200,
-            author: '💙𓆩‎✘AʏᴜSʜ✘𓆪_✰',
-            url: "https://api.telegram.org/file/bot891038791:AAHWB1dQd-vi0IbH2NjKYUk-hqQ8rQuzPD4/" + data2.data.result.file_path
+            author: 'ᗰᗴᏞᎢᏆᑎᏀ ᑭ❣️ᏆᑎᎢɢʀᴇʏ✟',
+        url: "https://api.telegram.org/file/bot891038791:AAHWB1dQd-vi0IbH2NjKYUk-hqQ8rQuzPD4/" + data2.data.result.file_path
             }
             mariayresult.push(result)
         }
