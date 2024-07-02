@@ -52,14 +52,14 @@
 
 2. Pair with WhatsApp 
    <p align="left">
-       <a href="https://maria-pair-riders004.koyeb.app/pair.html">
+       <a href="https://maria-pair.koyeb.app/pair.html">
          <img src="https://play-lh.googleusercontent.com/901aMQFFnVoX2T-YuJmTIwpPve_SUgMv_QSyzMSPtAqt_l0CyXN1DxfD6xXU0r2f9iM=w240-h480-rw" width="90" />
        </a>
    </p>
 
 
 ## ✧✧Maria Deployment  
-<a href="https://maria-pair-riders004.koyeb.app/deploy.html"><img title="Deploy Maria-MD  " src="https://img.shields.io/badge/DEPLOY HEROKU-h?color=black&style=for-the-badge&logo=heroku"></a>
+<a href="https://maria-pair.koyeb.app/deploy.html"><img title="Deploy Maria-MD  " src="https://img.shields.io/badge/DEPLOY HEROKU-h?color=black&style=for-the-badge&logo=heroku"></a>
 
 
 
@@ -84,6 +84,20 @@
 * [FFmpeg](https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2020-12-08-13-03/ffmpeg-n4.3.1-26-gca55240b8c-win64-gpl-4.3.zip)
 * [Libwebp](https://developers.google.com/speed/webp/download)
 * Any text editor
+
+<br>
+
+- Termux
+```js
+apt update -y && apt upgrade -y && pkg update -y && pkg upgrade -y && pkg install libwebp -y && pkg install git -y && pkg install nodejs -y && pkg install ffmpeg -y && pkg install yarn && pkg install imagemagick -y && git clone https://github.com/MariaWaBot/Maria-MD && cd Maria-MD && npm install && npm start
+
+```
+
+- Command For 24/7
+```js
+npm i -g forever && forever index.js && forever save && forever logs
+```
+<br>
 
 </details>
 

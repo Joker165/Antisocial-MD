@@ -46,7 +46,7 @@ const replay = (teks) => {
             Maria.sendMessage(m.chat, { text: teks}, { quoted: m})
         }
 const xtime = moment.tz('Asia/Kolkata').format('HH:mm:ss')
-        const xdate = moment.tz('Asia/Kolkata').format('DD/MM/YYYY')
+        const Ayuxxdate = moment.tz('Asia/Kolkata').format('DD/MM/YYYY')
         const time2 = moment().tz('Asia/Kolkata').format('HH:mm:ss')  
          if(time2 < "23:59:00"){
 var Ayushytimewisher = `Good Night 🌌`
@@ -75,7 +75,22 @@ module.exports = Maria = async (Maria, m, msg, chatUpdate, store) => {
             now,
             fromMe
         } = m
-        var body = (m.mtype === 'conversation') ? m.message.conversation : (m.mtype == 'imageMessage') ? m.message.imageMessage.caption : (m.mtype == 'videoMessage') ? m.message.videoMessage.caption : (m.mtype == 'extendedTextMessage') ? m.message.extendedTextMessage.text : (m.mtype == 'buttonsResponseMessage') ? m.message.buttonsResponseMessage.selectedButtonId : (m.mtype == 'listResponseMessage') ? m.message.listResponseMessage.singleSelectreply.selectedRowId : (m.mtype == 'templateButtonreplyMessage') ? m.message.templateButtonreplyMessage.selectedId : (m.mtype === 'messageContextInfo') ? (m.message.buttonsResponseMessage?.selectedButtonId || m.message.listResponseMessage?.singleSelectreply.selectedRowId || m.text) : ''
+        var body = (
+  m.mtype === 'conversation' ? m.message.conversation :
+  m.mtype === 'imageMessage' ? m.message.imageMessage.caption :
+  m.mtype === 'videoMessage' ? m.message.videoMessage.caption :
+  m.mtype === 'extendedTextMessage' ? m.message.extendedTextMessage.text :
+  m.mtype === 'buttonsResponseMessage' ? m.message.buttonsResponseMessage.selectedButtonId :
+  m.mtype === 'listResponseMessage' ? m.message.listResponseMessage.singleSelectReply.selectedRowId :
+  m.mtype === 'InteractiveResponseMessage' ? JSON.parse(m.message.interactiveResponseMessage.nativeFlowResponseMessage.paramsJson)?.id :
+  m.mtype === 'templateButtonReplyMessage' ? m.message.templateButtonReplyMessage.selectedId :
+  m.mtype === 'messageContextInfo' ?
+    m.message.buttonsResponseMessage?.selectedButtonId ||
+    m.message.listResponseMessage?.singleSelectReply.selectedRowId ||
+    m.message.InteractiveResponseMessage.NativeFlowResponseMessage ||
+    m.text :
+  ''
+);
         var budy = (typeof m.text == 'string' ? m.text : '')
         
         const prefix = global.prefa || "."
@@ -270,19 +285,37 @@ async function Telesticker(url) {
 
 
 	
-   
+   //============= [LIST RESPONCE CHECKING START ]================
+        if(m.mtype === "interactiveResponseMessage"){
+            console.log("interactiveResponseMessage Detected!")   
+            let msg = m.message[m.mtype]  || m.msg
+            if(msg.nativeFlowResponseMessage  && !m.isBot  ){ 
+                let { id } = JSON.parse(msg.nativeFlowResponseMessage.paramsJson) || {}  
+                if(id){
+                    let emit_msg = { 
+                        key : { ...m.key } , // SET RANDOME MESSAGE ID  
+                        message:{ extendedTextMessage : { text : id } } ,
+                        pushName : m.pushName,
+                        messageTimestamp  : m.messageTimestamp || 754785898978
+                    }
+                    return Maria.ev.emit("messages.upsert" , { messages : [ emit_msg ] ,  type : "notify"})
+                }
+            }
+        }
+	
 	
 	//chat counter (console log)
         if (m.message && m.isGroup) {
-            
-			console.log(chalk.redBright(`\n\nGroup Chat:`))
-            console.log(chalk.black(chalk.bgWhite('[ MESSAGE ]')), chalk.black(chalk.bgGreen(new Date)), chalk.black(chalk.bgBlue(budy || m.mtype)) + '\n' + chalk.magenta('=> From'), chalk.green(pushname), chalk.yellow(m.sender) + '\n' + chalk.blueBright('=> In'), chalk.green(groupName, m.chat))
-        } else {
-            
-			console.log(chalk.redBright(`\n\nPrivate Chat:`))
-            console.log(chalk.black(chalk.bgWhite('[ MESSAGE ]')), chalk.black(chalk.bgGreen(new Date)), chalk.black(chalk.bgBlue(budy || m.mtype)) + '\n' + chalk.magenta('=> From'), chalk.green(pushname), chalk.yellow(m.sender))
-        }
-
+          
+    console.log(chalk.redBright(`\n\n🌟 Group Chat 🌟`));
+    console.log(chalk.black(), '\n' + chalk.magenta('=> 📩 Sender:'), chalk.green(pushname), chalk.yellow(m.sender), '\n' + chalk.blueBright('=> 💬 Message:'), chalk.green(budy || m.mtype));
+    console.log(chalk.blueBright('=> ⏰️Time:'), chalk.green(new Date));
+    console.log(chalk.blueBright('=> 🚀 Group:'), chalk.green(groupName));
+} else {
+    console.log(chalk.redBright(`\n\n🔒 Private Chat 🔒`));
+    console.log(chalk.black(), '\n' + chalk.magenta('=> 📩 Sender:'), chalk.green(pushname), chalk.yellow(budy || m.mtype), '\n' + chalk.blueBright('=> 💬 Message:'), chalk.green(budy || m.mtype));
+    console.log(chalk.blueBright('=> ⏰️Time:'), chalk.green(new Date));
+}
         if (command) {
             const cmdadd = () => {
                 hit[0].hit_cmd += 1
@@ -1413,45 +1446,29 @@ await Maria.sendMessage(m.chat,{
 },{quoted:m})
 }
 break;
-///////////////////////////////////////////////////
+//////////////////////////Ai menu/////////////////////////
 
-case 'chatgpt': case 'gpt':{
-Maria.sendMessage(from, { react: { text: "🤖", key: m.key }}) 
-              if (!q) return reply(`Please provide a text query. Example: ${prefix + command} Hello, ChatGPT!`);
-            
-              const apiUrl1 = `https://vihangayt.me/tools/chatgpt?q=${encodeURIComponent(q)}`;
-              const apiUrl2 = `https://gurugpt.cyclic.app/gpt4?prompt=${encodeURIComponent(q)}&model=llama`;
-            
-              try {
-                
-                const response1 = await fetch(apiUrl1);
-                const responseData1 = await response1.json();
-            
-                if (response1.status === 200 && responseData1 && responseData1.status === true && responseData1.data) {
-                  
-                  const message = responseData1.data;
-                  const me = m.sender;
-                  await Maria.sendMessage(m.chat, { text: message, mentions: [me] }, { quoted: m });
-                } else {
-                  
-                  const response2 = await fetch(apiUrl2);
-                  const responseData2 = await response2.json();
-            
-                  if (response2.status === 200 && responseData2 && responseData2.data) {
-                    
-                    const message = responseData2.data;
-                    const me = m.sender;
-                    await Maria.sendMessage(m.chat, { text: message, mentions: [me] }, { quoted: m });
-                  } else {
-                    reply("Sorry, I couldn't fetch a response from both APIs at the moment.");
-                  }
-                }
-              } catch (error) {
-                console.error(error);
-                reply("An error occurred while fetching the response from both APIs.");
-              }
-            }
-              break;
+case 'chatgpt':
+      case 'gpt':
+      case 'chatbot':
+       const axios = require("axios");
+        if (!args[0]) {
+          return reply(`Please provide a message to chat with the Maria chatbot. Example: ${prefix}chat How are you Maria ?`);
+        }
+
+        const message = encodeURIComponent(args.join(' '));
+        const gptapi = `https://api.maher-zubair.tech/ai/chatgpt3?q=${message}`;
+
+        try {
+          const response = await axios.get(gptapi);
+          const result = response.data.result;
+          reply(result);
+        } catch (error) {
+          console.error('Error fetching AI chatbot response:', error);
+          reply('An error occurred while fetching the Maria chatbot response. Please try again later.');
+        }
+        break;
+               
              case 'dalle': {
        
 
@@ -1470,7 +1487,7 @@ Maria.sendMessage(from, { react: { text: "🤖", key: m.key }})
 
 
          
-//////////////////////////////
+/////////////////////////////////////_//////////////
             case "rules":
       
         const helptxt = `_*📍[Rules for Maria Md usage]📍*_\n\n\n*>>>* use ${prefix}support to get the Official group link in your dm.\n\n*--->* If you want to add Maria-Md in your group the contact the owner by *${prefix}owner/${prefix}mods* \n\n*--->* Dont use wrong command, use the command given in the *${prefix}help* list \n\n* Dont spam the bot with commands if Maria-Md is not responding, its means the maybe owner is offline or facing internet issue. \n\n*IF YOU DONT FOLLOW THE RULES THEN YOU WILL BE BANNED* 🚫 \n\n\n*©️ Ayush Bots inc* `
@@ -1524,7 +1541,7 @@ Maria.sendMessage(m.chat, { image: { url: "https://graph.org/file/c8ad7dc322c0b9
 
 
  case 'owner': {
-                Maria.sendContact(m.chat, Config.ownernumber, m)
+                Maria.sendContact(m.chat, global.ownernumber, m)
             }
             break;
             
@@ -1953,7 +1970,7 @@ break;
 │⋊ 𝕌𝕤𝕖𝕣: ${pushname} 
 │⋊ 𝔹𝕠𝕥:  ${botname}
 │⋊ ℙ𝕣𝕖𝕗𝕚𝕩:  *${prefix}*
-│⋊ 𝔻𝕒𝕥𝕖: ${xdate}
+│⋊ 𝔻𝕒𝕥𝕖: ${Ayuxxdate}
 │⋊ 𝕋𝕚𝕞𝕖:  ${xtime}
 │⋊ 𝕆𝕨𝕟𝕖𝕣: ${ownername}
 │⋊ 𝕧𝕖𝕣𝕤𝕚𝕠𝕟: ${mver}
@@ -2017,7 +2034,10 @@ ${readmore}
 │⊳ 🍁 ${prefix}opentime
 │⊳ 🍁 ${prefix}kick
 │⊳ 🍁 ${prefix}promote
+│⊳ 🍁 ${prefix}promoteall
 │⊳ 🍁 ${prefix}demote
+│⊳ 🍁 ${prefix}demoteall
+│⊳ 🍁 ${prefix}joinrequest
 │⊳ 🍁 ${prefix}setdesc
 │⊳ 🍁 ${prefix}setppgc
 │⊳ 🍁 ${prefix}tagall
@@ -2088,6 +2108,7 @@ ${readmore}
 │⊳ 🏮 ${prefix}qc
 │⊳ 🏮 ${prefix}smeme
 │⊳ 🏮 ${prefix}take
+│⊳ 🏮 ${prefix}getbio
 │⊳ 🏮 ${prefix}toimage
 │⊳ 🏮 ${prefix}tovideo
 │⊳ 🏮 ${prefix}toaudio
@@ -2248,6 +2269,1070 @@ case 'public': {
 `
         Maria.sendMessage(m.chat, { image: { url: "./Gallery/nsfw.jpg" }, caption: nsfwmenu }, { quoted: m });
         break;
+        
+////////////////////menu_v2.1///////////////////////
+   
+case 'generalmenu':
+    const generalmenu = `┌──⊰ _*🧧GENERAL🧧*_
+│⊳ 🌿 ${prefix}hi
+│⊳ 🌿 ${prefix}dev
+│⊳ 🌿 ${prefix}info
+│⊳ 🌿 ${prefix}support
+│⊳ 🌿 ${prefix}rules
+│⊳ 🌿 ${prefix}term
+│⊳ 🌿 ${prefix}help
+│⊳ 🌿 ${prefix}runtime
+│⊳ 🌿 ${prefix}ping
+│⊳ 🌿 ${prefix}owner
+│⊳ 🌿 ${prefix}script
+└──────────⊰
+`
+let gmsg = generateWAMessageFromContent(from, {
+  viewOnceMessage: {
+    message: {
+        "messageContextInfo": {
+          "deviceListMetadata": {},
+          "deviceListMetadataVersion": 2
+        },
+        interactiveMessage: proto.Message.InteractiveMessage.create({
+          body: proto.Message.InteractiveMessage.Body.create({
+            text: ""
+          }),
+          footer: proto.Message.InteractiveMessage.Footer.create({
+            text: botname
+          }),
+                    header: proto.Message.InteractiveMessage.Header.create({
+                ...(await prepareWAMessageMedia({ image : fs.readFileSync('./Gallery/list.jpg')}, { upload: Maria.waUploadToServer})), 
+            title: generalmenu,
+            subtitle: themeemoji,
+            hasMediaAttachment: false
+          }),
+          nativeFlowMessage: proto.Message.InteractiveMessage.NativeFlowMessage.create({
+            buttons: [
+                          {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"Instragram🎐\",\"url\":\"https://www.instagram.com/ayushpandeyy_023\",\"merchant_url\":\"https://www.google.com\"}"
+              },
+              {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"Channel🚀 \",\"url\":\"https://whatsapp.com/channel/0029VaImo5ZG3R3qjKOdyr1I\",\"merchant_url\":\"https://www.google.com\"}"
+              },
+              {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"Script🌟 \",\"url\":\"https://github.com/AYUSH-PANDEY023/Maria-MD\",\"merchant_url\":\"https://www.google.com\"}"
+              }
+
+           ],
+          })
+        })
+    }
+  }
+}, {})
+
+await Maria.relayMessage(gmsg.key.remoteJid, gmsg.message, {
+  messageId: gmsg.key.id
+})
+
+   
+ break
+    
+    
+ case 'educationmenu':
+    const educationmenu = `┌──⊰ _*🎓Education🎓*_
+│⊳ 📚 ${prefix}element 
+│⊳ 📚 ${prefix}calculator 
+│⊳ 📚 ${prefix}sciencefact
+│⊳ 📚 ${prefix}sciencenews
+└──────────⊰
+`
+let emsg = generateWAMessageFromContent(from, {
+  viewOnceMessage: {
+    message: {
+        "messageContextInfo": {
+          "deviceListMetadata": {},
+          "deviceListMetadataVersion": 2
+        },
+        interactiveMessage: proto.Message.InteractiveMessage.create({
+          body: proto.Message.InteractiveMessage.Body.create({
+            text: ""
+          }),
+          footer: proto.Message.InteractiveMessage.Footer.create({
+            text: botname
+          }),
+                    header: proto.Message.InteractiveMessage.Header.create({
+                ...(await prepareWAMessageMedia({ image : fs.readFileSync('./Gallery/list.jpg')}, { upload: Maria.waUploadToServer})), 
+            title: educationmenu,
+            subtitle: themeemoji,
+            hasMediaAttachment: false
+          }),
+          nativeFlowMessage: proto.Message.InteractiveMessage.NativeFlowMessage.create({
+            buttons: [
+                                      {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"Instragram🎐\",\"url\":\"https://www.instagram.com/ayushpandeyy_023\",\"merchant_url\":\"https://www.google.com\"}"
+              },
+              {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"Channel🚀 \",\"url\":\"https://whatsapp.com/channel/0029VaImo5ZG3R3qjKOdyr1I\",\"merchant_url\":\"https://www.google.com\"}"
+              },
+              {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"Script🌟 \",\"url\":\"https://github.com/AYUSH-PANDEY023/Maria-MD\",\"merchant_url\":\"https://www.google.com\"}"
+              }
+
+           ],
+          })
+        })
+    }
+  }
+}, {})
+
+await Maria.relayMessage(emsg.key.remoteJid, emsg.message, {
+  messageId: emsg.key.id
+})
+ break
+    
+    
+ case 'codingmenu':
+    const codingmenu = `┌──⊰ _*💻Coding💻*_
+│⊳ 🌀${prefix}exec
+│⊳ 🌀${prefix}run
+│⊳ 🌀${prefix}gitclone
+└──────────⊰
+`
+ let cmsg = generateWAMessageFromContent(from, {
+  viewOnceMessage: {
+    message: {
+        "messageContextInfo": {
+          "deviceListMetadata": {},
+          "deviceListMetadataVersion": 2
+        },
+        interactiveMessage: proto.Message.InteractiveMessage.create({
+          body: proto.Message.InteractiveMessage.Body.create({
+            text: ""
+          }),
+          footer: proto.Message.InteractiveMessage.Footer.create({
+            text: botname
+          }),
+                    header: proto.Message.InteractiveMessage.Header.create({
+                ...(await prepareWAMessageMedia({ image : fs.readFileSync('./Gallery/list.jpg')}, { upload: Maria.waUploadToServer})), 
+            title: codingmenu,
+            subtitle: themeemoji,
+            hasMediaAttachment: false
+          }),
+          nativeFlowMessage: proto.Message.InteractiveMessage.NativeFlowMessage.create({
+            buttons: [
+                                      {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"Instragram🎐\",\"url\":\"https://www.instagram.com/ayushpandeyy_023\",\"merchant_url\":\"https://www.google.com\"}"
+              },
+              {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"Channel🚀 \",\"url\":\"https://whatsapp.com/channel/0029VaImo5ZG3R3qjKOdyr1I\",\"merchant_url\":\"https://www.google.com\"}"
+              },
+              {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"Script🌟 \",\"url\":\"https://github.com/AYUSH-PANDEY023/Maria-MD\",\"merchant_url\":\"https://www.google.com\"}"
+              }
+
+           ],
+          })
+        })
+    }
+  }
+}, {})
+
+await Maria.relayMessage(cmsg.key.remoteJid, cmsg.message, {
+  messageId: cmsg.key.id
+})
+ break
+         
+   
+ case 'ownermenu':
+    const ownermenu = `┌──⊰ _*🧩OWNER🧩*_
+│⊳ ♠️ ${prefix}session
+│⊳ ♠️ ${prefix}join
+│⊳ ♠️ ${prefix}mode *[self/public]*
+│⊳ ♠️ ${prefix}shutdown
+│⊳ ♠️ ${prefix}restart
+│⊳ ♠️ ${prefix}autoread *[option]*
+│⊳ ♠️ ${prefix}autotyping *[option]*
+│⊳ ♠️ ${prefix}autorecording *[option]*
+│⊳ ♠️ ${prefix}autorecordtyp *[option]*
+│⊳ ♠️ ${prefix}autobio *[option]*
+│⊳ ♠️ ${prefix}autoswview *[option]*
+│⊳ ♠️ ${prefix}setppbot
+│⊳ ♠️ ${prefix}stealdp
+│⊳ ♠️ ${prefix}block
+│⊳ ♠️ ${prefix}unblock
+│⊳ ♠️ ${prefix}backup
+│⊳ ♠️ ${prefix}getcase
+│⊳ ♠️ ${prefix}creategc
+└──────────⊰`
+
+let owmsg = generateWAMessageFromContent(from, {
+  viewOnceMessage: {
+    message: {
+        "messageContextInfo": {
+          "deviceListMetadata": {},
+          "deviceListMetadataVersion": 2
+        },
+        interactiveMessage: proto.Message.InteractiveMessage.create({
+          body: proto.Message.InteractiveMessage.Body.create({
+            text: ""
+          }),
+          footer: proto.Message.InteractiveMessage.Footer.create({
+            text: botname
+          }),
+                    header: proto.Message.InteractiveMessage.Header.create({
+                ...(await prepareWAMessageMedia({ image : fs.readFileSync('./Gallery/list.jpg')}, { upload: Maria.waUploadToServer})), 
+            title: ownermenu,
+            subtitle: themeemoji,
+            hasMediaAttachment: false
+          }),
+          nativeFlowMessage: proto.Message.InteractiveMessage.NativeFlowMessage.create({
+            buttons: [
+                                      {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"Instragram🎐\",\"url\":\"https://www.instagram.com/ayushpandeyy_023\",\"merchant_url\":\"https://www.google.com\"}"
+              },
+              {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"Channel🚀 \",\"url\":\"https://whatsapp.com/channel/0029VaImo5ZG3R3qjKOdyr1I\",\"merchant_url\":\"https://www.google.com\"}"
+              },
+              {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"Script🌟 \",\"url\":\"https://github.com/AYUSH-PANDEY023/Maria-MD\",\"merchant_url\":\"https://www.google.com\"}"
+              }
+
+           ],
+          })
+        })
+    }
+  }
+}, {})
+
+await Maria.relayMessage(owmsg.key.remoteJid, owmsg.message, {
+  messageId: owmsg.key.id
+})
+ break
+     
+  case 'groupmenu':
+    const groupmenu = `┌──⊰ _*👮🏻‍♂️GROUP👮🏻‍♂️*_
+│⊳ 🍁 ${prefix}antilink
+│⊳ 🍁 ${prefix}closetime
+│⊳ 🍁 ${prefix}opentime
+│⊳ 🍁 ${prefix}kick
+│⊳ 🍁 ${prefix}promote
+│⊳ 🍁 ${prefix}demote
+│⊳ 🍁 ${prefix}setdesc
+│⊳ 🍁 ${prefix}setppgc
+│⊳ 🍁 ${prefix}tagall
+│⊳ 🍁 ${prefix}hidetag
+│⊳ 🍁 ${prefix}totag
+│⊳ 🍁 ${prefix}group *[option]*
+│⊳ 🍁 ${prefix}editinfo
+│⊳ 🍁 ${prefix}gclink
+│⊳ 🍁 ${prefix}revoke
+│⊳ 🍁 ${prefix}listonline
+└──────────⊰
+ `
+  let gcmsg = generateWAMessageFromContent(from, {
+  viewOnceMessage: {
+    message: {
+        "messageContextInfo": {
+          "deviceListMetadata": {},
+          "deviceListMetadataVersion": 2
+        },
+        interactiveMessage: proto.Message.InteractiveMessage.create({
+          body: proto.Message.InteractiveMessage.Body.create({
+            text: ""
+          }),
+          footer: proto.Message.InteractiveMessage.Footer.create({
+            text: botname
+          }),
+                    header: proto.Message.InteractiveMessage.Header.create({
+                ...(await prepareWAMessageMedia({ image : fs.readFileSync('./Gallery/list.jpg')}, { upload: Maria.waUploadToServer})), 
+            title: groupmenu,
+            subtitle: themeemoji,
+            hasMediaAttachment: false
+          }),
+          nativeFlowMessage: proto.Message.InteractiveMessage.NativeFlowMessage.create({
+            buttons: [
+                                      {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"Instragram🎐\",\"url\":\"https://www.instagram.com/ayushpandeyy_023\",\"merchant_url\":\"https://www.google.com\"}"
+              },
+              {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"Channel🚀 \",\"url\":\"https://whatsapp.com/channel/0029VaImo5ZG3R3qjKOdyr1I\",\"merchant_url\":\"https://www.google.com\"}"
+              },
+              {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"Script🌟 \",\"url\":\"https://github.com/AYUSH-PANDEY023/Maria-MD\",\"merchant_url\":\"https://www.google.com\"}"
+              }
+
+           ],
+          })
+        })
+    }
+  }
+}, {})
+
+await Maria.relayMessage(gcmsg.key.remoteJid, gcmsg.message, {
+  messageId: gcmsg.key.id
+})
+ break
+    
+  case 'funmenu':
+    const funmenu = `┌──⊰ _*🎉FUN🎉*_
+│⊳🎟️ ${prefix}truth
+│⊳🎟️ ${prefix}dare
+│⊳🎟️ ${prefix}couple 
+│⊳🎟️ ${prefix}Ship
+│⊳🎟️ ${prefix}insult 
+│⊳🎟️ ${prefix}flirt
+│⊳🎟️ ${prefix}shayari
+│⊳🎟️ ${prefix}joke
+│⊳🎟️ ${prefix}soulmate
+│⊳🎟️ ${prefix}checkdeath
+│⊳🎟️ ${prefix}uglycheck
+│⊳🎟️ ${prefix}lovelycheck
+│⊳🎟️ ${prefix}prettycheck
+│⊳🎟️ ${prefix}hornycheck
+│⊳🎟️ ${prefix}lesbiancheck
+│⊳🎟️ ${prefix}lesbicheck
+│⊳🎟️ ${prefix}lesbiancheck
+│⊳🎟️ ${prefix}cutecheck
+│⊳🎟️ ${prefix}gaycheck
+│⊳🎟️ ${prefix}greatcheck
+│⊳🎟️ ${prefix}awesomecheck 
+└──────────⊰
+`
+let funmsg = generateWAMessageFromContent(from, {
+  viewOnceMessage: {
+    message: {
+        "messageContextInfo": {
+          "deviceListMetadata": {},
+          "deviceListMetadataVersion": 2
+        },
+        interactiveMessage: proto.Message.InteractiveMessage.create({
+          body: proto.Message.InteractiveMessage.Body.create({
+            text: ""
+          }),
+          footer: proto.Message.InteractiveMessage.Footer.create({
+            text: botname
+          }),
+                    header: proto.Message.InteractiveMessage.Header.create({
+                ...(await prepareWAMessageMedia({ image : fs.readFileSync('./Gallery/list.jpg')}, { upload: Maria.waUploadToServer})), 
+            title: funmenu,
+            subtitle: themeemoji,
+            hasMediaAttachment: false
+          }),
+          nativeFlowMessage: proto.Message.InteractiveMessage.NativeFlowMessage.create({
+            buttons: [
+                                      {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"Instragram🎐\",\"url\":\"https://www.instagram.com/ayushpandeyy_023\",\"merchant_url\":\"https://www.google.com\"}"
+              },
+              {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"Channel🚀 \",\"url\":\"https://whatsapp.com/channel/0029VaImo5ZG3R3qjKOdyr1I\",\"merchant_url\":\"https://www.google.com\"}"
+              },
+              {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"Script🌟 \",\"url\":\"https://github.com/AYUSH-PANDEY023/Maria-MD\",\"merchant_url\":\"https://www.google.com\"}"
+              }
+
+           ],
+          })
+        })
+    }
+  }
+}, {})
+
+await Maria.relayMessage(funmsg.key.remoteJid, funmsg.message, {
+  messageId: funmsg.key.id
+})
+ break
+    
+  
+   case 'downloadmenu':
+    const downloadmenu = `┌──⊰ _*📂download📂*_
+│⊳ 📥 ${prefix}play
+│⊳ 📥 ${prefix}ytmp3
+│⊳ 📥 ${prefix}ytmp4
+│⊳ 📥 ${prefix}igimage 
+│⊳ 📥 ${prefix}igvideo 
+│⊳ 📥 ${prefix}pinterest
+│⊳ 📥 ${prefix}apk
+└──────────⊰
+`
+let dowmsg = generateWAMessageFromContent(from, {
+  viewOnceMessage: {
+    message: {
+        "messageContextInfo": {
+          "deviceListMetadata": {},
+          "deviceListMetadataVersion": 2
+        },
+        interactiveMessage: proto.Message.InteractiveMessage.create({
+          body: proto.Message.InteractiveMessage.Body.create({
+            text: ""
+          }),
+          footer: proto.Message.InteractiveMessage.Footer.create({
+            text: botname
+          }),
+                    header: proto.Message.InteractiveMessage.Header.create({
+                ...(await prepareWAMessageMedia({ image : fs.readFileSync('./Gallery/list.jpg')}, { upload: Maria.waUploadToServer})), 
+            title: downloadmenu,
+            subtitle: themeemoji,
+            hasMediaAttachment: false
+          }),
+          nativeFlowMessage: proto.Message.InteractiveMessage.NativeFlowMessage.create({
+            buttons: [
+                                      {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"Instragram🎐\",\"url\":\"https://www.instagram.com/ayushpandeyy_023\",\"merchant_url\":\"https://www.google.com\"}"
+              },
+              {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"Channel🚀 \",\"url\":\"https://whatsapp.com/channel/0029VaImo5ZG3R3qjKOdyr1I\",\"merchant_url\":\"https://www.google.com\"}"
+              },
+              {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"Script🌟 \",\"url\":\"https://github.com/AYUSH-PANDEY023/Maria-MD\",\"merchant_url\":\"https://www.google.com\"}"
+              }
+
+           ],
+          })
+        })
+    }
+  }
+}, {})
+
+await Maria.relayMessage(dowmsg.key.remoteJid, dowmsg.message, {
+  messageId: dowmsg.key.id
+})
+ break
+    
+    
+case 'wallmenu':
+        const wallmenu=`┌──⊰ _*✨️WALLPAPER✨️*_
+│⊳ 🎴 ${prefix}Doraemon
+│⊳ 🎴 ${prefix}pokemon 
+│⊳ 🎴 ${prefix}zero-two 
+└──────────⊰
+`
+let wallmsg = generateWAMessageFromContent(from, {
+  viewOnceMessage: {
+    message: {
+        "messageContextInfo": {
+          "deviceListMetadata": {},
+          "deviceListMetadataVersion": 2
+        },
+        interactiveMessage: proto.Message.InteractiveMessage.create({
+          body: proto.Message.InteractiveMessage.Body.create({
+            text: ""
+          }),
+          footer: proto.Message.InteractiveMessage.Footer.create({
+            text: botname
+          }),
+                    header: proto.Message.InteractiveMessage.Header.create({
+                ...(await prepareWAMessageMedia({ image : fs.readFileSync('./Gallery/list.jpg')}, { upload: Maria.waUploadToServer})), 
+            title: wallmenu,
+            subtitle: themeemoji,
+            hasMediaAttachment: false
+          }),
+          nativeFlowMessage: proto.Message.InteractiveMessage.NativeFlowMessage.create({
+            buttons: [
+                                      {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"Instragram🎐\",\"url\":\"https://www.instagram.com/ayushpandeyy_023\",\"merchant_url\":\"https://www.google.com\"}"
+              },
+              {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"Channel🚀 \",\"url\":\"https://whatsapp.com/channel/0029VaImo5ZG3R3qjKOdyr1I\",\"merchant_url\":\"https://www.google.com\"}"
+              },
+              {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"Script🌟 \",\"url\":\"https://github.com/AYUSH-PANDEY023/Maria-MD\",\"merchant_url\":\"https://www.google.com\"}"
+              }
+
+           ],
+          })
+        })
+    }
+  }
+}, {})
+
+await Maria.relayMessage(wallmsg.key.remoteJid, wallmsg.message, {
+  messageId: wallmsg.key.id
+})
+ break
+    
+  case 'snapblendmenu':
+    const snapblendmenu = `┌──⊰ _*🎐SnapBlend🎐*_
+│⊳🎀 ${prefix}shadow
+│⊳🎀 ${prefix}write
+│⊳🎀 ${prefix}smoke
+│⊳🎀 ${prefix}burnpaper
+│⊳🎀 ${prefix}romantic
+│⊳🎀 ${prefix}writeart
+│⊳🎀 ${prefix}rainboweffect
+│⊳🎀 ${prefix}smokyneon
+│⊳🎀 ${prefix}underwaterocean
+│⊳🎀 ${prefix}coffecup
+│⊳🎀 ${prefix}doublelove
+│⊳🎀 ${prefix}undergrass
+│⊳🎀 ${prefix}love
+│⊳🎀 ${prefix}narutobanner
+│⊳🎀 ${prefix}shinetext
+└──────────⊰
+`
+    let snamsg = generateWAMessageFromContent(from, {
+  viewOnceMessage: {
+    message: {
+        "messageContextInfo": {
+          "deviceListMetadata": {},
+          "deviceListMetadataVersion": 2
+        },
+        interactiveMessage: proto.Message.InteractiveMessage.create({
+          body: proto.Message.InteractiveMessage.Body.create({
+            text: ""
+          }),
+          footer: proto.Message.InteractiveMessage.Footer.create({
+            text: botname
+          }),
+                    header: proto.Message.InteractiveMessage.Header.create({
+                ...(await prepareWAMessageMedia({ image : fs.readFileSync('./Gallery/list.jpg')}, { upload: Maria.waUploadToServer})), 
+            title: snapblendmenu,
+            subtitle: themeemoji,
+            hasMediaAttachment: false
+          }),
+          nativeFlowMessage: proto.Message.InteractiveMessage.NativeFlowMessage.create({
+            buttons: [
+                                      {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"Instragram🎐\",\"url\":\"https://www.instagram.com/ayushpandeyy_023\",\"merchant_url\":\"https://www.google.com\"}"
+              },
+              {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"Channel🚀 \",\"url\":\"https://whatsapp.com/channel/0029VaImo5ZG3R3qjKOdyr1I\",\"merchant_url\":\"https://www.google.com\"}"
+              },
+              {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"Script🌟 \",\"url\":\"https://github.com/AYUSH-PANDEY023/Maria-MD\",\"merchant_url\":\"https://www.google.com\"}"
+              }
+
+           ],
+          })
+        })
+    }
+  }
+}, {})
+
+await Maria.relayMessage(snamsg.key.remoteJid,  snamsg.message, {
+  messageId:  snamsg.key.id
+})
+ break
+    
+    
+  case 'othersmenu':
+    const othersmenu = `┌──⊰ _*⛩️OTHERS⛩️*_
+│⊳ 🏮 ${prefix}sticker
+│⊳ 🏮 ${prefix}qc
+│⊳ 🏮 ${prefix}smeme
+│⊳ 🏮 ${prefix}take
+│⊳ 🏮 ${prefix}toimage
+│⊳ 🏮 ${prefix}tovideo
+│⊳ 🏮 ${prefix}toaudio
+│⊳ 🏮 ${prefix}tomp3
+│⊳ 🏮 ${prefix}tovn
+│⊳ 🏮 ${prefix}togif
+│⊳ 🏮 ${prefix}tourl
+│⊳ 🏮 ${prefix}toqr
+│⊳ 🏮 ${prefix}toviewonce
+│⊳ 🏮 ${prefix}fliptext
+│⊳ 🏮 ${prefix}emojimix
+│⊳ 🏮 ${prefix}circlevideo
+│⊳ 🏮 ${prefix}google
+│⊳ 🏮 ${prefix}pinterest
+│⊳ 🏮 ${prefix}dalle
+│⊳ 🏮 ${prefix}gpt
+│⊳ 🏮 ${prefix}say
+│⊳ 🏮 ${prefix}tts
+│⊳ 🏮 ${prefix}obfuscate
+└──────────⊰
+`
+let othmsg = generateWAMessageFromContent(from, {
+  viewOnceMessage: {
+    message: {
+        "messageContextInfo": {
+          "deviceListMetadata": {},
+          "deviceListMetadataVersion": 2
+        },
+        interactiveMessage: proto.Message.InteractiveMessage.create({
+          body: proto.Message.InteractiveMessage.Body.create({
+            text: ""
+          }),
+          footer: proto.Message.InteractiveMessage.Footer.create({
+            text: botname
+          }),
+                    header: proto.Message.InteractiveMessage.Header.create({
+                ...(await prepareWAMessageMedia({ image : fs.readFileSync('./Gallery/list.jpg')}, { upload: Maria.waUploadToServer})), 
+            title: othersmenu,
+            subtitle: themeemoji,
+            hasMediaAttachment: false
+          }),
+          nativeFlowMessage: proto.Message.InteractiveMessage.NativeFlowMessage.create({
+            buttons: [
+                                      {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"Instragram🎐\",\"url\":\"https://www.instagram.com/ayushpandeyy_023\",\"merchant_url\":\"https://www.google.com\"}"
+              },
+              {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"Channel🚀 \",\"url\":\"https://whatsapp.com/channel/0029VaImo5ZG3R3qjKOdyr1I\",\"merchant_url\":\"https://www.google.com\"}"
+              },
+              {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"Script🌟 \",\"url\":\"https://github.com/AYUSH-PANDEY023/Maria-MD\",\"merchant_url\":\"https://www.google.com\"}"
+              }
+
+           ],
+          })
+        })
+    }
+  }
+}, {})
+
+await Maria.relayMessage(othmsg.key.remoteJid, othmsg.message, {
+  messageId: othmsg.key.id
+})
+ break
+    
+       
+  case 'gamemenu':
+    const gamesmenu = `┌──⊰ _*🃏Games🃏*_
+│⊳ 🎰 ${prefix}slot
+│⊳ 🎰 ${prefix}poker
+│⊳ 🎰 ${prefix}dice
+│⊳ 🎰 ${prefix}flipcoin
+│⊳ 🎰 ${prefix}Rps
+│⊳ 🎰 ${prefix}guess
+│⊳ 🎰 ${prefix}roulette
+│⊳ 🎰 ${prefix}blackjack
+│⊳ 🎰 ${prefix}compliment
+└──────────⊰
+`
+    let gamemsg = generateWAMessageFromContent(from, {
+  viewOnceMessage: {
+    message: {
+        "messageContextInfo": {
+          "deviceListMetadata": {},
+          "deviceListMetadataVersion": 2
+        },
+        interactiveMessage: proto.Message.InteractiveMessage.create({
+          body: proto.Message.InteractiveMessage.Body.create({
+            text: ""
+          }),
+          footer: proto.Message.InteractiveMessage.Footer.create({
+            text: botname
+          }),
+                    header: proto.Message.InteractiveMessage.Header.create({
+                ...(await prepareWAMessageMedia({ image : fs.readFileSync('./Gallery/list.jpg')}, { upload: Maria.waUploadToServer})), 
+            title: gamesmenu,
+            subtitle: themeemoji,
+            hasMediaAttachment: false
+          }),
+          nativeFlowMessage: proto.Message.InteractiveMessage.NativeFlowMessage.create({
+            buttons: [
+                                      {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"Instragram🎐\",\"url\":\"https://www.instagram.com/ayushpandeyy_023\",\"merchant_url\":\"https://www.google.com\"}"
+              },
+              {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"Channel🚀 \",\"url\":\"https://whatsapp.com/channel/0029VaImo5ZG3R3qjKOdyr1I\",\"merchant_url\":\"https://www.google.com\"}"
+              },
+              {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"Script🌟 \",\"url\":\"https://github.com/AYUSH-PANDEY023/Maria-MD\",\"merchant_url\":\"https://www.google.com\"}"
+              }
+
+           ],
+          })
+        })
+    }
+  }
+}, {})
+
+await Maria.relayMessage(gamemsg.key.remoteJid, gamemsg.message, {
+  messageId: gamemsg.key.id
+})
+ break
+    
+    
+    
+    case 'alive': {
+  const alivem = `┏━━━━❮ 𝚫𝐋𝚰𝛁𝚵 ❯━━━━━᯽
+┃ *🤖 Bot Name:* ${botname}
+┃ *👨‍✈️ Creator:* ${ownername}
+┃ *💻 RUNTIME:* ${runtime(process.uptime())}
+┃ *📅 TODAY:* ${Ayuxxdate}
+┃ *💠 Github:* https://github.com/AYUSH-PANDEY023/Maria-MD
+┃ *💬MESSAGE:* 𝙔𝙀𝙎! 𝙄 𝘼𝙈 𝘼𝙇𝙄𝙑𝙀 𝘽𝘼𝘽𝙔😚!!
+┗━━━━━━━━━━━━━━━᯽
+_Please Select Button Below_
+`  
+let msg = generateWAMessageFromContent(from, {
+  viewOnceMessage: {
+    message: {
+        "messageContextInfo": {
+          "deviceListMetadata": {},
+          "deviceListMetadataVersion": 2
+        },
+        interactiveMessage: proto.Message.InteractiveMessage.create({
+          body: proto.Message.InteractiveMessage.Body.create({
+            text: alivem
+          }),
+          footer: proto.Message.InteractiveMessage.Footer.create({
+            text: botname
+          }),
+                    header: proto.Message.InteractiveMessage.Header.create({
+                ...(await prepareWAMessageMedia({ image : fs.readFileSync('./Gallery/list.jpg')}, { upload: Maria.waUploadToServer})), 
+                  title: ``,
+                  gifPlayback: true,
+                  subtitle: ownername,
+                  hasMediaAttachment: false  
+                }),
+          nativeFlowMessage: proto.Message.InteractiveMessage.NativeFlowMessage.create({
+            buttons: [
+                            {
+  "name": "quick_reply",
+  "buttonParamsJson": `{"display_text":"MENU 🗃️","id":"${prefix}menu"}`
+   },
+                 {
+  "name": "quick_reply",
+  "buttonParamsJson": `{"display_text":"List Menu 🔖","id":"${prefix}list"}`
+   },
+                 {
+  "name": "quick_reply",
+  "buttonParamsJson": `{"display_text":"DEVELOPER 👨🏼‍💻","id":"${prefix}developer"}`
+   },
+   
+                 {
+  "name": "quick_reply",
+  "buttonParamsJson": `{"display_text":"OWNER 🔮","id":"${prefix}owner"}`
+   },
+                 {
+  "name": "quick_reply",
+  "buttonParamsJson": `{"display_text":"SCRIPT 🥵 ","id":"${prefix}sc"}`
+   },
+              {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"CHANNEL🚀\",\"url\":\"https://whatsapp.com/channel/0029VaImo5ZG3R3qjKOdyr1I\",\"merchant_url\":\"https://www.google.com\"}"
+              }                      
+           ],
+          }),
+          contextInfo: {
+                  mentionedJid: [m.sender], 
+                  forwardingScore: 999,
+                  isForwarded: true,
+                forwardedNewsletterMessageInfo: {
+                  newsletterJid: '919931122319@s.whatsapp.net',
+                  newsletterName: "AYUSH BOTZ INC",
+                  serverMessageId: 143
+                }
+                }
+        })
+    }
+  }
+}, {})
+
+await Maria.relayMessage(msg.key.remoteJid, msg.message, {
+  messageId: msg.key.id
+})
+}
+break
+
+
+case 'list': {
+  const alivem = ` Hey darling! 🌟 Please select the menu buttons here.`
+let liistmsg = generateWAMessageFromContent(from, {
+  viewOnceMessage: {
+    message: {
+        "messageContextInfo": {
+          "deviceListMetadata": {},
+          "deviceListMetadataVersion": 2
+        },
+        interactiveMessage: proto.Message.InteractiveMessage.create({
+          body: proto.Message.InteractiveMessage.Body.create({
+            text: alivem
+          }),
+          footer: proto.Message.InteractiveMessage.Footer.create({
+            text: botname
+          }),
+                    header: proto.Message.InteractiveMessage.Header.create({
+                ...(await prepareWAMessageMedia({ image : fs.readFileSync('./Gallery/list.jpg')}, { upload: Maria.waUploadToServer})), 
+                ...(await prepareWAMessageMedia({ image : fs.readFileSync('./Gallery/list.jpg')}, { upload: Maria.waUploadToServer})), 
+                  title: ``,
+                  gifPlayback: true,
+                  subtitle: ownername,
+                  hasMediaAttachment: false  
+                }),
+          nativeFlowMessage: proto.Message.InteractiveMessage.NativeFlowMessage.create({
+            buttons: [
+                            {
+  "name": "quick_reply",
+  "buttonParamsJson": `{"display_text":" All MENU 🗃️","id":"${prefix}menu"}`
+   },
+                 {
+  "name": "quick_reply",
+  "buttonParamsJson": `{"display_text":"🧧GENERAL🧧","id":"${prefix}generalmenu"}`
+   },
+                 {
+  "name": "quick_reply",
+  "buttonParamsJson": `{"display_text":"🎓Education🎓","id":"${prefix}educationmenu"}`
+   },
+   
+                 {
+  "name": "quick_reply",
+  "buttonParamsJson": `{"display_text":"💻Coding💻","id":"${prefix}codingmenu"}`
+   },
+                 {
+  "name": "quick_reply",
+  "buttonParamsJson": `{"display_text":"🧩OWNER🧩","id":"${prefix}ownermenu"}`
+   },
+   {
+  "name": "quick_reply",
+  "buttonParamsJson": `{"display_text":"👮🏻‍♂️GROUP👮🏻‍♂️","id":"${prefix}groupmenu"}`
+   },
+   {
+  "name": "quick_reply",
+  "buttonParamsJson": `{"display_text":"🎉FUN🎉","id":"${prefix}funmenu"}`
+   },
+   {
+  "name": "quick_reply",
+  "buttonParamsJson": `{"display_text":"📂download📂","id":"${prefix}downloadmenu"}`
+   },
+   {
+  "name": "quick_reply",
+  "buttonParamsJson": `{"display_text":"✨️WALLPAPER✨️","id":"${prefix}wallmenu"}`
+   },
+   {
+  "name": "quick_reply",
+  "buttonParamsJson": `{"display_text":"🎐SnapBlend🎐","id":"${prefix}snapmenu"}`
+   },
+   {
+  "name": "quick_reply",
+  "buttonParamsJson": `{"display_text":"⛩️OTHERS⛩️","id":"${prefix}othermenu"}`
+   },
+   {
+  "name": "quick_reply",
+  "buttonParamsJson": `{"display_text":"🃏Games🃏","id":"${prefix}Gamemenu"}`
+   },
+              {
+                 "name": "cta_url",
+                 "buttonParamsJson": "{\"display_text\":\"CHANNEL🚀\",\"url\":\"https://whatsapp.com/channel/0029VaImo5ZG3R3qjKOdyr1I\",\"merchant_url\":\"https://www.google.com\"}"
+              }                      
+           ],
+          }),
+          contextInfo: {
+                  mentionedJid: [m.sender], 
+                  forwardingScore: 999,
+                  isForwarded: true,
+                forwardedNewsletterMessageInfo: {
+                  newsletterJid: '9931122319@newsletter',
+                  newsletterName: "AYUSH BOTZ INC",
+                  serverMessageId: 143
+                }
+                }
+        })
+    }
+  }
+}, {})
+
+await Maria.relayMessage(liistmsg.key.remoteJid, liistmsg.message, {
+  messageId: liistmsg.key.id
+})
+}
+break
+
+
+case 'nobg': case 'removebg': case 'remove-bg': {
+	    if (!quoted) throw `Send/Reply Image With Caption ${prefix + command}`
+	    if (!/image/.test(mime)) throw `Send/Reply Image With Caption ${prefix + command}`
+	    if (/webp/.test(mime)) throw `Send/Reply Image With Caption ${prefix + command}`
+	    let remobg = require('remove.bg')
+	    let apirnobg = ['q61faXzzR5zNU6cvcrwtUkRU','S258diZhcuFJooAtHTaPEn4T','5LjfCVAp4vVNYiTjq9mXJWHF','aT7ibfUsGSwFyjaPZ9eoJc61','BY63t7Vx2tS68YZFY6AJ4HHF','5Gdq1sSWSeyZzPMHqz7ENfi8','86h6d6u4AXrst4BVMD9dzdGZ','xp8pSDavAgfE5XScqXo9UKHF','dWbCoCb3TacCP93imNEcPxcL']
+	    let apinobg = apirnobg[Math.floor(Math.random() * apirnobg.length)]
+	    hmm = await './Gallery/remobg-'+getRandom('')
+	    localFile = await Maria.downloadAndSaveMediaMessage(quoted, hmm)
+	    outputFile = await './Gallery/hremo-'+getRandom('.png')
+	    m.reply(mess.wait)
+	    remobg.removeBackgroundFromImageFile({
+	      path: localFile,
+	      apiKey: apinobg,
+	      size: "regular",
+	      type: "auto",
+	      scale: "100%",
+	      outputFile 
+	    }).then(async result => {
+	    Maria.sendMessage(m.chat, {image: fs.readFileSync(outputFile), caption: mess.success}, { quoted : m })
+	    await fs.unlinkSync(localFile)
+	    await fs.unlinkSync(outputFile)
+	    })
+	    }
+	    break
+	    
+	    
+	    case 'me':
+case 'profile':
+     
+    var bio = await Maria.fetchStatus(m.sender);
+    var bioo = bio.status;
+    const adn = isAdmins ? "👑 Yes" : "🙂 No";
+     
+    try {
+        pfp = await Maria.profilePictureUrl(m.sender, 'image');
+    } catch (e) {
+        pfp = 'https://wallpapercave.com/wp/wp10524580.jpg';
+    }
+
+    const profilexx = `*「🎀Profile Info🎀」*\n\n🏮 *Username* : ${pushname}\n🎗️ *About* : ${bioo}\n👑 *Admin* : ${adn}\n`;
+
+    let buttonMessage = {
+        image: { url: pfp },
+        caption: profilexx
+    };
+    
+    Maria.sendMessage(m.chat, buttonMessage, { quoted: m });
+    break;
+            
+            case 'promoteall': {
+ if (!m.isGroup) return reply(mess.group);
+                 if (!isAdmins && !isGroupOwner && !isCreator) return reply(mess.admin)
+                if (!isBotAdmins) return reply(mess.botAdmin)
+  const Mariapromoteall = (args[0] === 'numBut')
+  ? text.replace(`${args[0]} `, '').split('|')
+  : (Number(args[0]))
+    ? groupMetadata.participants
+      .filter(item => item.id.startsWith(args[0].replace('+', '')) && item.id !== botNumber && item.id !== `${ownernumber}@s.whatsapp.net`)
+      .map(item => item.id)
+    : groupMetadata.participants
+      .filter(item => item.id !== botNumber && item.id !== `${ownernumber}@s.whatsapp.net`)
+      .map(item => item.id);
+ for (let promote of Mariapromoteall) {
+ await Maria.groupParticipantsUpdate(m.chat, [(args[0] === "numBut") ? `${promote}@s.whatsapp.net` : promote], "promote");
+ await sleep(100);
+ }
+ reply(`🔺 *Promotion Successful* 🔺\n\nAll members have been promoted successfully!`);
+}
+break
+case 'demoteall': {
+if (!m.isGroup) return reply(mess.group);
+                 if (!isAdmins && !isGroupOwner && !isCreator) return reply(mess.admin)
+                if (!isBotAdmins) return reply(mess.botAdmin)
+  const Mariademoteall = (args[0] === 'numBut')
+  ? text.replace(`${args[0]} `, '').split('|')
+  : (Number(args[0]))
+    ? groupMetadata.participants
+      .filter(item => item.id.startsWith(args[0].replace('+', '')) && item.id !== botNumber && item.id !== `${ownernumber}@s.whatsapp.net`)
+      .map(item => item.id)
+    : groupMetadata.participants
+      .filter(item => item.id !== botNumber && item.id !== `${ownernumber}@s.whatsapp.net`)
+      .map(item => item.id);
+ for (let demote of Mariademoteall) {
+ await Maria.groupParticipantsUpdate(m.chat, [(args[0] === "numBut") ? `${demote}@s.whatsapp.net` : demote], "demote");
+ await sleep(100);
+ }
+ reply(`🔻 *Demotion Successful* 🔻\n\nAll members have been demoted successfully!`);
+}
+break
+
+case 'joinrequest': {
+    if (!m.isGroup) return reply(mess.group);
+    if (!isAdmins && !isGroupOwner && !isCreator) return reply(mess.admin)
+    if (!isBotAdmins) return reply(mess.botAdmin)
+    const response = await Maria.groupRequestParticipantsList(m.chat);
+    if (!response || !response.length) {
+        Maria.sendMessage(m.chat, { text: 'No pending join requests. 😕' }, { quoted: m });
+        return;
+    }
+    let replyMessage = `🔖 Join Request List:\n`;
+    response.forEach((request, index) => {
+        const { jid, request_method, request_time } = request;
+        const formattedTime = new Date(parseInt(request_time) * 1000).toLocaleString();
+        replyMessage += `\n*No.: ${index + 1} Request Details. 👇*`;
+        replyMessage += `\n📇 *JID:* ${jid}`;
+        replyMessage += `\n🛠️ *Method:* ${request_method}`;
+        replyMessage += `\n⏰ *Time:* ${formattedTime}\n`;
+    });
+
+    Maria.sendMessage(m.chat, { text: replyMessage }, { quoted: m });
+};
+break;
+
+case 'getbio': {
+  try {
+    let who
+    if (m.isGroup) who = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted.sender
+    else who = m.quoted.sender ? m.quoted.sender : m.sender
+    let bio = await Maria.fetchStatus(who)
+    reply(`*━━━❰ BIO REQUEST ❱━━━*
+*🚀Request:* by **${pushname} **
+*🔖victim:* ${who}
+*📃Bio:* ${bio.status} 😊`)
+  } catch {
+    if (text) return reply(`bio is private or you haven't replied to the person's message! 😕`)
+    else try {
+      let who = m.quoted ? m.quoted.sender : m.sender
+      let bio = await Maria.fetchStatus(who)
+      reply(`*━━━❰ BIO REQUEST ❱━━━*
+*🚀Request:* by **${pushname} **
+*🔖victim:* ${who}
+*📃Bio:* ${bio.status} 😊`)
+    } catch {
+      return reply(`bio is private or you haven't replied to the person's message! 😕`)
+    }
+  }
+}
+break;
+     
+     case 'pme':
+                {
+                    if (!isGroup) return reply('this feature is only for groups')
+                if (!isBotAdmins) return reply('i am not an admin so how can i promote you as an admin 🤔')
+                    if (!isCreator) return reply('ahh only my owner can use this cmd 🥱')
+                    //if(!isBotGroupAdmins) return reply('Bot Not Admin...')
+                    Maria.groupParticipantsUpdate(from, [sender], 'promote')
+
+                    reply('Congratulations, you are now an admin of this group. 🥳 Please Dont mention this to the other group admins. 🤫')
+                }
+                break
+
+            case 'dme':
+                {
+                    if (!isGroup) return reply('this feature is only for groups')
+                              if (!isBotAdmins) return reply('Bro just chill I am also not an admin😌')
+                    if (!isCreator) return reply('ahh only my owner can use this cmd 🥱')
+                    // if(!isBotGroupAdmins) return reply('Bot Not Admin...')
+                    Maria.groupParticipantsUpdate(from, [sender], 'demote')
+
+                    reply('*_you had a good run but you are no longer an admin. Embrace the freedom! 🌈_*')
+                }
+                break
+                
+                
+                
+                
+////////////////////////////////////////////////      
+        
+        
+        
+        
+        
               case 'nsfw': {
    Maria.sendMessage(from, { react: { text: "🔞", key: m.key }}) 
  if (!m.isGroup) return reply(mess.group);
@@ -2746,76 +3831,38 @@ caption += `\n\t\t---------------------------------`;
     }
 break;
 
+
+
 case 'dice': {
-    const lastPlayTimestamps = new Map();
-    const lastPlayTime = lastPlayTimestamps.get(m.sender) || 0;
-    const currentTime = Date.now();
-    const timeDifference = currentTime - lastPlayTime;
-    const sixHours = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
+    let caption = '';
 
-    // Check if the player has reached the maximum play limit
-    if (timeDifference < sixHours && lastPlayTime !== 0) {
-        caption = `\uD83D\uDEAB Sorry, you have reached the maximum play limit. Please try again later.`;
+    // Proceed with the dice game
+    let userNumber = parseInt(m.text.split(' ')[1], 10);
+    if (isNaN(userNumber) || userNumber < 1 || userNumber > 6) {
+        caption = `🤷‍♀️ Please choose a number between 1 and 6 for the dice game.`;
     } else {
-        // Check if the player has already played 20 times
-        const playCount = lastPlayTimestamps.get(m.sender + '_count') || 0;
-        if (playCount >= 20) {
-            caption = `\uD83D\uDEAB Sorry, you have reached the maximum play limit of 20 times in 6 hours. Please try again later.`;
+        let playerNumber = userNumber;
+        let mariaNumber = Math.floor(Math.random() * 6) + 1;
+        let resultMessage;
+
+        if (playerNumber > mariaNumber) {
+            resultMessage = `🎲 You chose ${playerNumber}! Maria rolled a ${mariaNumber}. 🏆 You win! 🎉`;
+        } else if (playerNumber < mariaNumber) {
+            resultMessage = `🎲 You chose ${playerNumber}! Maria rolled a ${mariaNumber}. 😞 You lose! 💔`;
         } else {
-            // Update the last play timestamp and play count for the player
-            lastPlayTimestamps.set(m.sender, currentTime);
-            lastPlayTimestamps.set(m.sender + '_count', playCount + 1);
-
-            // Proceed with the dice game
-            let userNumber = parseInt(m.text.split(' ')[1], 10);
-            if (isNaN(userNumber) || userNumber < 1 || userNumber > 6) {
-                caption = `\uD83E\uDD37 Please choose a number between 1 and 6 for the dice game.`;
-            } else {
-                let playerNumber = userNumber;
-                let casinoNumber = Math.floor(Math.random() * 6) + 1;
-                let resultMessage;
-
-                if (playerNumber > casinoNumber) {
-                    resultMessage = `\uD83C\uDFB2 You chose ${playerNumber}! Casino rolled a ${casinoNumber}. You win! \uD83C\uDF89`;
-                } else if (playerNumber < casinoNumber) {
-                    resultMessage = `\uD83C\uDFB2 You chose ${playerNumber}! Casino rolled a ${casinoNumber}. You lose! \uD83D\uDE22`;
-                } else {
-                    resultMessage = `\uD83C\uDFB2 You chose ${playerNumber}! Casino rolled a ${casinoNumber}. It's a tie! \uD83C\uDF9D`;
-                }
-
-                caption = `\t\uD83D\uDD22 *Dice Roll Game* \uD83D\uDD22 \n`;
-                caption += `\t\t---------------------------------\n`;
-                caption += `${resultMessage}`;
-                caption += `\n\t\t---------------------------------`;
-            }
+            resultMessage = `🎲 You chose ${playerNumber}! Maria rolled a ${mariaNumber}. 🤝 It's a tie! 😅`;
         }
+
+        caption = `🎲 *Dice Roll Game* 🎲\n`;
+        caption += `---------------------------------\n`;
+        caption += `${resultMessage}`;
+        caption += `\n---------------------------------`;
     }
 
     // Send the result message
     Maria.sendMessage(m.chat, { text: caption, mentions: [m.sender] }, { quoted: m });
 }
 break;
-
-
-
-// Function to get user balance
-function getUserBalance(userId) {
-    const filePath = `balances/${userId}.json`;
-    try {
-        const balanceData = fs.readFileSync(filePath, 'utf8');
-        return JSON.parse(balanceData).balance || 0;
-    } catch (error) {
-        return 0;
-    }
-}
-
-// Function to update user balance
-function updateUserBalance(userId, newBalance) {
-    const filePath = `balances/${userId}.json`;
-    const balanceData = { balance: newBalance };
-    fs.writeFileSync(filePath, JSON.stringify(balanceData), 'utf8');
-}
-
 // Command for poker game
 
 
@@ -3159,8 +4206,6 @@ async function fetchScienceNewsHeadlines() {
 
 //Function of games
 case 'chat':
- 
-    const axios = require("axios");
     
     botreply = await axios.get(
       `http://api.brainshop.ai/get?bid=180857&key=SeLyK3P24U91Ed7a&uid=[Mariabot]&msg=[text]`
@@ -3301,6 +4346,13 @@ fs.watchFile(file, () => {
 process.on('uncaughtException', function (err) {
 let e = String(err)
 if (e.includes("Socket connection timeout")) return
+if (e.includes("Removing old closed session")) return
+if (e.includes("SessionEntry")) return
+if (e.includes("conflict")) return
+if (e.includes("Cannot derive from empty media key")) return
+if (e.includes("not-authorized")) return
+if (e.includes("already-exists")) return
+if (e.includes("Removing old closed session")) return
 if (e.includes("item-not-found")) return
 if (e.includes("rate-overlimit")) return
 if (e.includes("Connection Closed")) return
